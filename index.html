@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyek Interaktif Basis Data - The Athenaeum Library</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: linear-gradient(135deg, #D2B48C 0%, #F5DEB3 50%, #E6D8B8 100%);
+            scroll-behavior: smooth;
+        }
+        .space { display: none; animation: fadeIn 0.5s ease-in-out; }
+        .space.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .data-tab, .code-tab, .laporan-tab { cursor: pointer; transition: all 0.3s ease; }
+        
+        .data-tab, .code-tab { padding: 0.5rem 1rem; border-radius: 9999px; }
+        .data-tab.active, .code-tab.active { background-color: #A0522D; color: white; }
+
+        .laporan-tab {
+            padding: 0.75rem 0.5rem;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+            color: #475569; /* slate-600 */
+        }
+        .laporan-tab:hover {
+            color: #A0522D; /* sienna */
+        }
+        .laporan-tab.active {
+            color: #A0522D; /* sienna */
+            border-bottom-color: #A0522D;
+        }
+
+        .data-content, .code-content, .report-content { display: none; }
+        .data-content.active, .code-content.active, .report-content.active { display: block; }
+        
+        pre { background-color: #1e293b; color: #e2e8f0; padding: 1.5rem; border-radius: 0.75rem; overflow-x: auto; position: relative; border: 1px solid #334155; font-size: 0.9rem; }
+        .koleksi-item { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .koleksi-item:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: white; padding: 2rem; border-radius: 0.75rem;
+            width: 90%; max-width: 600px;
+            transform: scale(0.95); transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+    </style>
+</head>
+<body>
+
+    <!-- ===== RUANG 1: FRONT PAGE PERPUSTAKAAN ===== -->
+    <div id="space-frontpage" class="space active">
+        <div class="min-h-screen flex flex-col">
+            <div class="flex-grow">
+                <header class="border-b bg-white/50 backdrop-blur-sm sticky top-0 z-30">
+                    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+                        <div id="library-name-header" class="font-bold text-2xl text-slate-800" style="font-family: 'Lora', serif;">The <span style="color: #8B4513;">Athenaeum</span> Library</div>
+                        <nav class="space-x-6 text-slate-600 font-semibold">
+                            <a href="#hero" class="hover:text-yellow-800">Beranda</a>
+                            <a href="#koleksi" class="hover:text-yellow-800">Koleksi</a>
+                            <a href="#info" class="hover:text-yellow-800">Informasi</a>
+                        </nav>
+                    </div>
+                </header>
+                <main id="hero" class="container mx-auto px-6 py-24 text-center">
+                    <h1 class="text-5xl font-extrabold text-slate-900">Jelajahi Dunia Pengetahuan Tanpa Batas</h1>
+                    <p class="mt-4 text-xl text-slate-600">Temukan harta karun di antara ribuan koleksi buku, jurnal, dan sumber daya digital kami.</p>
+                    <div class="mt-8 max-w-2xl mx-auto">
+                        <div class="relative">
+                            <input id="searchInput" type="search" placeholder="Cari judul, penulis, atau ISBN..." class="w-full p-4 pr-12 text-lg border-2 border-slate-300 rounded-full focus:ring-yellow-700 focus:border-yellow-700 bg-white">
+                            <button id="searchButton" class="absolute top-1/2 right-4 -translate-y-1/2 text-slate-400 hover:text-yellow-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                </main>
+                <section id="koleksi" class="py-20">
+                    <div class="container mx-auto px-6">
+                        <div id="koleksiGrid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
+                            <!-- Konten buku di-generate oleh JavaScript -->
+                        </div>
+                        <div id="pagination-controls" class="flex justify-center items-center mt-12 space-x-4">
+                            <button id="prevPage" class="bg-yellow-700 text-white font-bold py-2 px-6 rounded-full hover:bg-yellow-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition">Sebelumnya</button>
+                            <span id="pageInfo" class="font-semibold text-slate-700">Halaman 1 dari 12</span>
+                            <button id="nextPage" class="bg-yellow-700 text-white font-bold py-2 px-6 rounded-full hover:bg-yellow-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition">Berikutnya</button>
+                        </div>
+                        <div id="noResultsMessage" class="hidden text-center text-slate-600 mt-8 font-semibold"><p>Buku yang Anda cari tidak ditemukan.</p></div>
+                    </div>
+                </section>
+                <section id="info" class="py-20">
+                    <div class="container mx-auto px-6 grid md:grid-cols-3 gap-12 text-center">
+                        <div class="bg-white/50 backdrop-blur-sm p-8 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-bold text-slate-800">Jam Operasional</h3>
+                            <p id="library-hours" class="mt-2 text-slate-600">Senin - Jumat: 08:00 - 20:00<br>Sabtu - Minggu: 09:00 - 16:00</p>
+                        </div>
+                        <div class="bg-white/50 backdrop-blur-sm p-8 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-bold text-slate-800">Lokasi</h3>
+                            <p id="library-location" class="mt-2 text-slate-600">123 Knowledge Avenue,<br>Scholarship City, Central Java</p>
+                        </div>
+                        <div class="bg-white/50 backdrop-blur-sm p-8 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-bold text-slate-800">Kontak</h3>
+                            <p id="library-contact" class="mt-2 text-slate-600">Telepon: (021) 123-4567<br>Email: contact@athenaeum.lib</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <footer class="w-full py-8 mt-20" style="background-color: #D2B48C;">
+                <div class="container mx-auto text-center">
+                    <h4 class="font-bold text-slate-800 mb-2">Disusun oleh Kelompok:</h4>
+                    <p class="text-slate-700">Aaron Sanyu Lunanta (312310001) | Adam Chesta (312310002) | Benedictus Marcello Nathanael (312310008)</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- ===== RUANG 2: LAPORAN PROYEK ===== -->
+    <div id="space-laporan" class="space">
+        <header class="py-6 text-center border-b bg-white/80 backdrop-blur-sm sticky top-0 z-20">
+            <h1 class="text-4xl font-bold text-slate-900">Pusat Informasi PL/SQL</h1>
+            <p class="mt-2 text-md text-slate-500">Mata Kuliah: Basis Data Lanjut</p>
+            <nav id="laporan-nav" class="mt-4 flex justify-center items-center space-x-2 md:space-x-6 flex-wrap">
+                <a href="#" data-target="procedure-content" class="laporan-tab active">Procedure</a>
+                <a href="#" data-target="function-content" class="laporan-tab">Function</a>
+                <a href="#" data-target="package-content" class="laporan-tab">Package</a>
+                <a href="#" data-target="persistent-state-content" class="laporan-tab">Persistent State</a>
+                <a href="#" data-target="dynamic-sql-content" class="laporan-tab">Dynamic SQL</a>
+                <a href="#" data-target="trigger-content" class="laporan-tab">Trigger</a>
+            </nav>
+        </header>
+        
+        <main class="container mx-auto max-w-7xl px-4 py-12">
+            <div id="laporan-content-area">
+                <section id="procedure-content" class="report-content active"><div class="text-center mb-8"><h2 class="text-3xl font-extrabold text-slate-800 inline-block border-b-4 border-blue-500 px-4 py-2">Procedure</h2></div><p class="text-center text-lg text-slate-600 max-w-3xl mx-auto mb-12">Sebuah `PROCEDURE` adalah blok kode PL/SQL yang dinamai untuk melakukan satu atau lebih aksi spesifik. Tujuannya adalah untuk mengenkapsulasi logika yang sering digunakan, sehingga dapat dipanggil berulang kali tanpa perlu menulis ulang kode. Ini meningkatkan keterbacaan, modularitas, dan kemudahan pemeliharaan kode.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start"><div class="bg-white p-6 rounded-lg shadow-lg"><h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">PEMBUATAN</h3><p class="text-sm text-slate-500 mb-4">Prosedur ini mengotomatiskan proses registrasi buku baru beserta beberapa eksemplar (copy) sekaligus.</p><pre><code>CREATE OR REPLACE PROCEDURE Registrasi_Buku_Baru (
+    p_Judul         IN Buku.Judul%TYPE,
+    p_ID_Penerbit   IN Buku.ID_Penerbit%TYPE,
+    p_Tahun_Terbit  IN Buku.Tahun_Terbit%TYPE,
+    p_ISBN          IN Buku.ISBN%TYPE,
+    p_Jumlah_Copy   IN NUMBER
+) AS
+    v_ID_Buku Buku.ID_Buku%TYPE;
+BEGIN
+    INSERT INTO Buku (Judul, ID_Penerbit, Tahun_Terbit, ISBN)
+    VALUES (p_Judul, p_ID_Penerbit, p_Tahun_Terbit, p_ISBN)
+    RETURNING ID_Buku INTO v_ID_Buku;
+
+    FOR i IN 1..p_Jumlah_Copy LOOP
+        INSERT INTO Eksemplar_Buku (ID_Buku, Kode_Eksemplar, Status_Ketersediaan)
+        VALUES (v_ID_Buku, 'EKM' || LPAD(Eksemplar_Buku_SEQ.NEXTVAL, 7, '0'), 'Tersedia');
+    END LOOP;
+    
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Buku "' || p_Judul || '" berhasil diregistrasi.');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Terjadi kegagalan: ' || SQLERRM);
+        ROLLBACK;
+END;
+/</code></pre></div><div class="bg-white p-6 rounded-lg shadow-lg"><h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">PEMANGGILAN</h3><p class="text-sm text-slate-500 mb-4">Memanggil prosedur untuk mendaftarkan buku baru. Kode ini dieksekusi dalam blok PL/SQL anonim.</p><pre><code>BEGIN
+    Registrasi_Buku_Baru(
+        p_Judul         => 'Pemrograman Python untuk Pemula',
+        p_ID_Penerbit   => 101, -- Merujuk pada ID Penerbit Informatika
+        p_Tahun_Terbit  => 2024,
+        p_ISBN          => '978-602-1514-88-0',
+        p_Jumlah_Copy   => 5 -- Membuat 5 eksemplar untuk buku ini
+    );
+END;
+/</code></pre></div></div></section>
+                <section id="function-content" class="report-content"><div class="text-center mb-8"><h2 class="text-3xl font-extrabold text-slate-800 inline-block border-b-4 border-green-500 px-4 py-2">Function</h2></div><p class="text-center text-lg text-slate-600 max-w-3xl mx-auto mb-12">Sebuah `FUNCTION` mirip dengan prosedur, namun perbedaannya adalah fungsi dirancang untuk mengembalikan sebuah nilai. Fungsi sangat berguna untuk melakukan kalkulasi atau validasi yang hasilnya dibutuhkan oleh blok kode lain.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start"><div class="bg-white p-6 rounded-lg shadow-lg"><h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">PEMBUATAN</h3><p class="text-sm text-slate-500 mb-4">Fungsi ini bertujuan untuk memvalidasi status ketersediaan sebuah eksemplar buku sebelum dipinjam.</p><pre><code>CREATE OR REPLACE FUNCTION Cek_Ketersediaan_Eksemplar (
+    p_Kode_Eksemplar IN Eksemplar_Buku.Kode_Eksemplar%TYPE
+) RETURN BOOLEAN
+AS
+    v_Status Eksemplar_Buku.Status_Ketersediaan%TYPE;
+BEGIN
+    SELECT Status_Ketersediaan INTO v_Status
+    FROM Eksemplar_Buku
+    WHERE Kode_Eksemplar = p_Kode_Eksemplar;
+    
+    RETURN (v_Status = 'Tersedia');
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN FALSE;
+END;
+/</code></pre></div><div class="bg-white p-6 rounded-lg shadow-lg"><h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">PEMANGGILAN</h3><p class="text-sm text-slate-500 mb-4">Memanggil fungsi di dalam blok PL/SQL untuk memeriksa ketersediaan dan menampilkan hasilnya.</p><pre><code>DECLARE
+    v_Tersedia BOOLEAN;
+BEGIN
+    v_Tersedia := Cek_Ketersediaan_Eksemplar('EKM0000001');
+    
+    IF v_Tersedia THEN
+        DBMS_OUTPUT.PUT_LINE('Eksemplar siap untuk dipinjam.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Eksemplar tidak tersedia atau sedang dipinjam.');
+    END IF;
+END;
+/</code></pre></div></div></section>
+                <section id="package-content" class="report-content"><div class="text-center mb-8"><h2 class="text-3xl font-extrabold text-slate-800 inline-block border-b-4 border-purple-500 px-4 py-2">Package</h2></div><p class="text-center text-lg text-slate-600 max-w-3xl mx-auto mb-12">`PACKAGE` adalah objek skema yang mengelompokkan prosedur, fungsi, dan variabel terkait secara logis. Ini menyembunyikan detail implementasi (di dalam `PACKAGE BODY`) dan hanya mengekspos antarmuka yang diperlukan (di dalam `PACKAGE SPECIFICATION`), meningkatkan keamanan dan modularitas.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start"><div class="bg-white p-6 rounded-lg shadow-lg"><h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">PEMBUATAN</h3><p class="text-sm text-slate-500 mb-4">Package `Modul_Sirkulasi` mengelompokkan semua logika bisnis terkait peminjaman dan pengembalian.</p><pre><code>-- Spesifikasi Package
+CREATE OR REPLACE PACKAGE Modul_Sirkulasi AS
+    PROCEDURE Proses_Peminjaman(p_ID_Anggota IN Anggota.ID_Anggota%TYPE, p_Kode_Eksemplar IN Eksemplar_Buku.Kode_Eksemplar%TYPE);
+    PROCEDURE Proses_Pengembalian(p_Kode_Eksemplar IN Eksemplar_Buku.Kode_Eksemplar%TYPE);
+END Modul_Sirkulasi;
+/
+
+-- Body Package
+CREATE OR REPLACE PACKAGE BODY Modul_Sirkulasi AS
+    PROCEDURE Proses_Peminjaman(p_ID_Anggota IN Anggota.ID_Anggota%TYPE, p_Kode_Eksemplar IN Eksemplar_Buku.Kode_Eksemplar%TYPE) AS
+    BEGIN
+        IF NOT Cek_Ketersediaan_Eksemplar(p_Kode_Eksemplar) THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Eksemplar ' || p_Kode_Eksemplar || ' sedang tidak tersedia.');
+        END IF;
+        
+        INSERT INTO Peminjaman (ID_Eksemplar, ID_Anggota, Tanggal_Pinjam, Tanggal_Jatuh_Tempo, Status_Peminjaman)
+        VALUES ((SELECT ID_Eksemplar FROM Eksemplar_Buku WHERE Kode_Eksemplar = p_Kode_Eksemplar), p_ID_Anggota, SYSDATE, SYSDATE + 14, 'Dipinjam');
+        
+        UPDATE Eksemplar_Buku SET Status_Ketersediaan = 'Dipinjam' WHERE Kode_Eksemplar = p_Kode_Eksemplar;
+        COMMIT;
+    END Proses_Peminjaman;
+    
+    PROCEDURE Proses_Pengembalian(p_Kode_Eksemplar IN Eksemplar_Buku.Kode_Eksemplar%TYPE) AS
+    BEGIN
+        UPDATE Peminjaman SET Status_Peminjaman = 'Kembali', Tanggal_Kembali = SYSDATE
+        WHERE ID_Eksemplar = (SELECT ID_Eksemplar FROM Eksemplar_Buku WHERE Kode_Eksemplar = p_Kode_Eksemplar) AND Status_Peminjaman = 'Dipinjam';
+
+        UPDATE Eksemplar_Buku SET Status_Ketersediaan = 'Tersedia' WHERE Kode_Eksemplar = p_Kode_Eksemplar;
+        COMMIT;
+    END Proses_Pengembalian;
+END Modul_Sirkulasi;
+/</code></pre></div><div class="bg-white p-6 rounded-lg shadow-lg"><h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">PEMANGGILAN</h3><p class="text-sm text-slate-500 mb-4">Memanggil prosedur dari dalam package untuk melakukan transaksi sirkulasi.</p><pre><code>-- Memanggil prosedur peminjaman dari package
+BEGIN
+    Modul_Sirkulasi.Proses_Peminjaman(
+        p_ID_Anggota => 312310001, 
+        p_Kode_Eksemplar => 'EKM0000002'
+    );
+END;
+/
+
+-- Memanggil prosedur pengembalian dari package
+BEGIN
+    Modul_Sirkulasi.Proses_Pengembalian(
+        p_Kode_Eksemplar => 'EKM0000002'
+    );
+END;
+/</code></pre></div></div></section>
+                <section id="persistent-state-content" class="report-content"><div class="text-center mb-8"><h2 class="text-3xl font-extrabold text-slate-800 inline-block border-b-4 border-amber-500 px-4 py-2">Persistent State Package</h2></div><p class="text-center text-lg text-slate-600 max-w-3xl mx-auto mb-12">Variabel yang dideklarasikan dalam spesifikasi package bersifat persisten (stateful), artinya nilainya akan tetap ada selama sesi koneksi pengguna berlangsung. Ini sangat berguna untuk menyimpan informasi sesi, seperti data pengguna yang sedang login.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start"><div class="bg-white p-6 rounded-lg shadow-lg"><h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">PEMBUATAN</h3><p class="text-sm text-slate-500 mb-4">Package ini menyimpan informasi pengguna (pustakawan) yang sedang login.</p><pre><code>CREATE OR REPLACE PACKAGE Sesi_Pengguna AS
+    v_ID_Pengguna   VARCHAR2(20);
+    v_Nama_Pengguna VARCHAR2(100);
+    
+    PROCEDURE Login(p_ID_Pengguna VARCHAR2, p_Nama_Pengguna VARCHAR2);
+    FUNCTION Get_ID_Pengguna RETURN VARCHAR2;
+    FUNCTION Get_Nama_Pengguna RETURN VARCHAR2;
+END Sesi_Pengguna;
+/
+
+CREATE OR REPLACE PACKAGE BODY Sesi_Pengguna AS
+    PROCEDURE Login(p_ID_Pengguna VARCHAR2, p_Nama_Pengguna VARCHAR2) IS
+    BEGIN
+        v_ID_Pengguna := p_ID_Pengguna;
+        v_Nama_Pengguna := p_Nama_Pengguna;
+    END Login;
+    
+    FUNCTION Get_ID_Pengguna RETURN VARCHAR2 IS BEGIN RETURN v_ID_Pengguna; END;
+    FUNCTION Get_Nama_Pengguna RETURN VARCHAR2 IS BEGIN RETURN v_Nama_Pengguna; END;
+END Sesi_Pengguna;
+/</code></pre></div><div class="bg-white p-6 rounded-lg shadow-lg"><h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">PEMANGGILAN</h3><p class="text-sm text-slate-500 mb-4">Mengatur dan mengambil data sesi pengguna yang aktif.</p><pre><code>-- Pustakawan 'Adam Chesta' login di awal sesi
+BEGIN
+    Sesi_Pengguna.Login('312310002', 'Adam Chesta');
+    DBMS_OUTPUT.PUT_LINE('Sesi dimulai untuk: ' || Sesi_Pengguna.Get_Nama_Pengguna());
+END;
+/
+
+-- Di bagian lain dari aplikasi, panggil kembali nilainya
+-- untuk keperluan audit atau personalisasi.
+-- SELECT Sesi_Pengguna.Get_ID_Pengguna() FROM DUAL;</code></pre></div></div></section>
+                <section id="dynamic-sql-content" class="report-content"><div class="text-center mb-8"><h2 class="text-3xl font-extrabold text-slate-800 inline-block border-b-4 border-cyan-500 px-4 py-2">Dynamic SQL</h2></div><p class="text-center text-lg text-slate-600 max-w-3xl mx-auto mb-12">Dynamic SQL adalah teknik membangun perintah SQL sebagai string saat runtime. Ini memungkinkan pembuatan query yang sangat fleksibel, di mana nama tabel, kolom, atau klausa `WHERE` dapat berubah-ubah sesuai input dari pengguna.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start"><div class="bg-white p-6 rounded-lg shadow-lg"><h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">PEMBUATAN</h3><p class="text-sm text-slate-500 mb-4">Prosedur ini menggunakan Dynamic SQL untuk membuat fitur pencarian yang dapat beradaptasi.</p><pre><code>CREATE OR REPLACE PROCEDURE Pencarian_Fleksibel (
+    p_Nama_Tabel   IN VARCHAR2,
+    p_Nama_Kolom   IN VARCHAR2,
+    p_Kata_Kunci   IN VARCHAR2
+)
+AS
+    v_SQL_Query VARCHAR2(2000);
+    TYPE Tipe_Kursor IS REF CURSOR;
+    v_Kursor Tipe_Kursor;
+    v_Hasil VARCHAR2(255);
+BEGIN
+    v_SQL_Query := 'SELECT ' || DBMS_ASSERT.SIMPLE_SQL_NAME(p_Nama_Kolom) || 
+                   ' FROM ' || DBMS_ASSERT.SIMPLE_SQL_NAME(p_Nama_Tabel) || 
+                   ' WHERE LOWER(' || DBMS_ASSERT.SIMPLE_SQL_NAME(p_Nama_Kolom) || ') LIKE :keyword';
+    
+    OPEN v_Kursor FOR v_SQL_Query USING '%' || LOWER(p_Kata_Kunci) || '%';
+    LOOP
+        FETCH v_Kursor INTO v_Hasil;
+        EXIT WHEN v_Kursor%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE('Ditemukan: ' || v_Hasil);
+    END LOOP;
+    CLOSE v_Kursor;
+END;
+/</code></pre></div><div class="bg-white p-6 rounded-lg shadow-lg"><h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">PEMANGGILAN</h3><p class="text-sm text-slate-500 mb-4">Memanggil prosedur dengan parameter yang berbeda untuk mencari data di tabel yang berbeda.</p><pre><code>-- Mencari anggota dengan nama mengandung 'aaron'
+BEGIN
+    Pencarian_Fleksibel('Anggota', 'Nama_Lengkap', 'aaron');
+END;
+/
+
+-- Mencari buku dengan judul mengandung 'data'
+BEGIN
+    Pencarian_Fleksibel('Buku', 'Judul', 'data');
+END;
+/</code></pre></div></div></section>
+                <section id="trigger-content" class="report-content"><div class="text-center mb-8"><h2 class="text-3xl font-extrabold text-slate-800 inline-block border-b-4 border-red-500 px-4 py-2">Trigger</h2></div><p class="text-center text-lg text-slate-600 max-w-3xl mx-auto mb-12">`TRIGGER` adalah blok PL/SQL yang dieksekusi secara otomatis ketika terjadi sebuah event DML (INSERT, UPDATE, DELETE) pada sebuah tabel. Ini sangat berguna untuk menjaga integritas data, melakukan audit, atau mencatat log perubahan secara otomatis.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start"><div class="bg-white p-6 rounded-lg shadow-lg"><h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">PEMBUATAN</h3><p class="text-sm text-slate-500 mb-4">Trigger ini secara otomatis mencatat setiap aktivitas peminjaman dan pengembalian ke dalam tabel `Log_Aktivitas`.</p><pre><code>CREATE OR REPLACE TRIGGER Audit_Sirkulasi
+AFTER INSERT OR UPDATE ON Peminjaman
+FOR EACH ROW
+DECLARE
+    v_Aksi VARCHAR2(500);
+    v_Kode_Eksemplar Eksemplar_Buku.Kode_Eksemplar%TYPE;
+BEGIN
+    SELECT Kode_Eksemplar INTO v_Kode_Eksemplar FROM Eksemplar_Buku WHERE ID_Eksemplar = :NEW.ID_Eksemplar;
+
+    IF INSERTING THEN
+        v_Aksi := 'Peminjaman eksemplar ' || v_Kode_Eksemplar || ' oleh anggota ' || :NEW.ID_Anggota;
+    ELSIF UPDATING AND :NEW.Status_Peminjaman = 'Kembali' AND :OLD.Status_Peminjaman = 'Dipinjam' THEN
+        v_Aksi := 'Pengembalian eksemplar ' || v_Kode_Eksemplar || ' oleh anggota ' || :NEW.ID_Anggota;
+    END IF;
+
+    IF v_Aksi IS NOT NULL THEN
+        INSERT INTO Log_Aktivitas (Deskripsi_Aktivitas, Pelaku_Aksi, Waktu_Aksi)
+        VALUES (v_Aksi, NVL(Sesi_Pengguna.Get_Nama_Pengguna(), 'Sistem'), SYSTIMESTAMP);
+    END IF;
+END;
+/</code></pre></div><div class="bg-white p-6 rounded-lg shadow-lg"><h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">PEMANGGILAN (PENGUJIAN)</h3><p class="text-sm text-slate-500 mb-4">Trigger tidak dipanggil langsung. Cukup panggil prosedur dari package sirkulasi, dan trigger akan aktif otomatis.</p><pre><code>-- 1. Pastikan sesi pengguna sudah aktif
+BEGIN
+    Sesi_Pengguna.Login('312310008', 'Benedictus Marcello');
+END;
+/
+
+-- 2. Lakukan peminjaman, trigger akan mencatat aktivitas ini
+BEGIN
+    Modul_Sirkulasi.Proses_Peminjaman(312310002, 'EKM0000003');
+END;
+/
+
+-- 3. Periksa hasilnya di tabel Log_Aktivitas
+-- SELECT * FROM Log_Aktivitas ORDER BY Waktu_Aksi DESC;</code></pre></div></div></section>
+            </div>
+        </main>
+        <footer class="w-full py-8 mt-20" style="background-color: #D2B48C;">
+            <div class="container mx-auto text-center">
+                <h4 class="font-bold text-slate-800 mb-2">Disusun oleh Kelompok:</h4>
+                <p class="text-slate-700">Aaron Sanyu Lunanta (312310001) | Adam Chesta (312310002) | Benedictus Marcello Nathanael (312310008)</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ===== RUANG 3: DATA TABEL INTERAKTIF ===== -->
+    <div id="space-data" class="space">
+        <div class="container mx-auto max-w-7xl p-4 md:p-8">
+            <h1 class="text-4xl font-bold text-slate-900 mb-4">Data Interaktif Database</h1>
+            <!-- [DIUBAH] Tombol untuk tabel baru ditambahkan -->
+            <div id="data-nav" class="flex items-center space-x-2 mb-8 flex-wrap">
+                <button data-target="buku-content" class="data-tab active">Data Buku</button>
+                <button data-target="eksemplar-content" class="data-tab">Eksemplar Buku</button>
+                <button data-target="anggota-content" class="data-tab">Data Anggota</button>
+                <button data-target="peminjaman-content" class="data-tab">Data Peminjaman</button>
+                <button data-target="penerbit-content" class="data-tab">Data Penerbit</button>
+                <button data-target="kategori-content" class="data-tab">Kategori</button>
+                <button data-target="denda-content" class="data-tab">Data Denda</button>
+                <button data-target="ulasan-content" class="data-tab">Ulasan Buku</button>
+                <button data-target="pustakawan-content" class="data-tab">Data Pustakawan</button>
+                <button data-target="log-content" class="data-tab">Log Aktivitas</button>
+            </div>
+            <div id="data-content-area">
+                <div id="buku-content" class="data-content active bg-white p-6 rounded-lg shadow-lg"><table id="buku-table" class="display" style="width:100%"><thead><tr><th>ID</th><th>Judul</th><th>Penulis</th><th>ID Penerbit</th><th>Tahun</th><th>ISBN</th></tr></thead></table></div>
+                <div id="eksemplar-content" class="data-content bg-white p-6 rounded-lg shadow-lg"><table id="eksemplar-table" class="display" style="width:100%"><thead><tr><th>ID Eksemplar</th><th>Kode</th><th>ID Buku</th><th>Status</th><th>Tgl. Ditambahkan</th></tr></thead></table></div>
+                <div id="anggota-content" class="data-content bg-white p-6 rounded-lg shadow-lg"><table id="anggota-table" class="display" style="width:100%"><thead><tr><th>ID</th><th>Nama</th><th>Alamat</th><th>Email</th><th>Gender</th><th>Tgl. Daftar</th></tr></thead></table></div>
+                <div id="peminjaman-content" class="data-content bg-white p-6 rounded-lg shadow-lg"><table id="peminjaman-table" class="display" style="width:100%"><thead><tr><th>ID Pinjam</th><th>ID Eksemplar</th><th>ID Anggota</th><th>Tgl. Pinjam</th><th>Jatuh Tempo</th><th>Status</th></tr></thead></table></div>
+                <div id="penerbit-content" class="data-content bg-white p-6 rounded-lg shadow-lg"><table id="penerbit-table" class="display" style="width:100%"><thead><tr><th>ID</th><th>Nama Penerbit</th><th>Kota</th></tr></thead></table></div>
+                <div id="kategori-content" class="data-content bg-white p-6 rounded-lg shadow-lg"><table id="kategori-table" class="display" style="width:100%"><thead><tr><th>ID</th><th>Nama Kategori</th><th>Deskripsi</th></tr></thead></table></div>
+                <!-- [DITAMBAHKAN] Kontainer untuk tabel baru -->
+                <div id="denda-content" class="data-content bg-white p-6 rounded-lg shadow-lg"><table id="denda-table" class="display" style="width:100%"><thead><tr><th>ID Denda</th><th>ID Pinjam</th><th>Jumlah</th><th>Status</th><th>Tgl. Pembayaran</th></tr></thead></table></div>
+                <div id="ulasan-content" class="data-content bg-white p-6 rounded-lg shadow-lg"><table id="ulasan-table" class="display" style="width:100%"><thead><tr><th>ID Ulasan</th><th>ID Buku</th><th>ID Anggota</th><th>Rating</th><th>Komentar</th><th>Tgl. Ulasan</th></tr></thead></table></div>
+                <div id="pustakawan-content" class="data-content bg-white p-6 rounded-lg shadow-lg"><table id="pustakawan-table" class="display" style="width:100%"><thead><tr><th>ID</th><th>Nama Lengkap</th><th>Posisi</th><th>Tgl. Bergabung</th></tr></thead></table></div>
+                <div id="log-content" class="data-content bg-white p-6 rounded-lg shadow-lg"><table id="log-table" class="display" style="width:100%"><thead><tr><th>ID</th><th>Deskripsi Aktivitas</th><th>Pelaku</th><th>Waktu</th></tr></thead></table></div>
+            </div>
+            <footer class="w-full py-8 mt-20" style="background-color: #D2B48C;">
+                <div class="container mx-auto text-center">
+                    <h4 class="font-bold text-slate-800 mb-2">Disusun oleh Kelompok:</h4>
+                    <p class="text-slate-700">Aaron Sanyu Lunanta (312310001) | Adam Chesta (312310002) | Benedictus Marcello Nathanael (312310008)</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- ===== RUANG 4: KODE SQL LENGKAP ===== -->
+    <div id="space-kode" class="space">
+        <header class="py-6 text-center border-b bg-white/80 backdrop-blur-sm"><h1 class="text-4xl font-bold text-slate-900">Repository Kode SQL</h1><p class="mt-2 text-md text-slate-500">Kumpulan kode dari pembuatan tabel hingga PL/SQL secara berurutan.</p></header>
+        <main class="container mx-auto max-w-5xl px-4 py-12">
+            <div id="code-nav" class="flex items-center space-x-2 mb-8 flex-wrap justify-center"><button data-target="ddl-content" class="code-tab active">Struktur Tabel (DDL)</button><button data-target="dml-content" class="code-tab">Data Awal (DML)</button><button data-target="plsql-content" class="code-tab">Logika Bisnis & Pemanggilan (PL/SQL)</button></div>
+            <div id="code-content-area">
+                <div id="ddl-content" class="code-content active space-y-8">
+                    <div><h3 class="text-xl font-semibold mb-2">1. Struktur Tabel (DDL)</h3><p class="text-sm text-slate-500 mb-4">Kode untuk membuat semua tabel dari awal, termasuk relasi dan sequence.</p><pre><code>-- Menghapus tabel jika sudah ada (opsional)
+BEGIN
+   EXECUTE IMMEDIATE 'DROP TABLE Log_Aktivitas';
+   EXECUTE IMMEDIATE 'DROP TABLE Denda';
+   EXECUTE IMMEDIATE 'DROP TABLE Ulasan_Buku';
+   EXECUTE IMMEDIATE 'DROP TABLE Pustakawan';
+   EXECUTE IMMEDIATE 'DROP TABLE Peminjaman';
+   EXECUTE IMMEDIATE 'DROP TABLE Anggota';
+   EXECUTE IMMEDIATE 'DROP TABLE Eksemplar_Buku';
+   EXECUTE IMMEDIATE 'DROP TABLE Buku';
+   EXECUTE IMMEDIATE 'DROP TABLE Kategori_Buku';
+   EXECUTE IMMEDIATE 'DROP TABLE Penerbit';
+   EXECUTE IMMEDIATE 'DROP SEQUENCE Eksemplar_Buku_SEQ';
+EXCEPTION
+   WHEN OTHERS THEN
+      IF SQLCODE != -942 THEN
+         RAISE;
+      END IF;
+END;
+/
+
+-- Tabel Referensi
+CREATE TABLE Penerbit (
+    ID_Penerbit NUMBER PRIMARY KEY,
+    Nama_Penerbit VARCHAR2(100) NOT NULL,
+    Kota VARCHAR2(50)
+);
+
+CREATE TABLE Kategori_Buku (
+    ID_Kategori NUMBER PRIMARY KEY,
+    Nama_Kategori VARCHAR2(50) NOT NULL UNIQUE,
+    Deskripsi VARCHAR2(255)
+);
+
+-- Tabel Utama
+CREATE TABLE Buku (
+    ID_Buku NUMBER GENERATED BY DEFAULT ON NULL AS IDENTITY PRIMARY KEY,
+    Judul VARCHAR2(255) NOT NULL,
+    Penulis VARCHAR2(100),
+    ID_Penerbit NUMBER REFERENCES Penerbit(ID_Penerbit),
+    Tahun_Terbit NUMBER(4),
+    ISBN VARCHAR2(20) UNIQUE,
+    ID_Kategori NUMBER REFERENCES Kategori_Buku(ID_Kategori),
+    Tanggal_Ditambahkan DATE DEFAULT SYSDATE
+);
+
+CREATE TABLE Eksemplar_Buku (
+    ID_Eksemplar NUMBER GENERATED BY DEFAULT ON NULL AS IDENTITY PRIMARY KEY,
+    ID_Buku NUMBER REFERENCES Buku(ID_Buku),
+    Kode_Eksemplar VARCHAR2(20) NOT NULL UNIQUE,
+    Status_Ketersediaan VARCHAR2(20) DEFAULT 'Tersedia',
+    Tanggal_Ditambahkan DATE DEFAULT SYSDATE
+);
+
+CREATE SEQUENCE Eksemplar_Buku_SEQ START WITH 1 INCREMENT BY 1;
+
+-- Tabel Pengguna & Staf
+CREATE TABLE Anggota (
+    ID_Anggota NUMBER PRIMARY KEY,
+    Nama_Lengkap VARCHAR2(100) NOT NULL,
+    Alamat VARCHAR2(255),
+    Email VARCHAR2(100) UNIQUE,
+    Gender CHAR(1),
+    Tanggal_Registrasi DATE DEFAULT SYSDATE
+);
+
+CREATE TABLE Pustakawan (
+    ID_Pustakawan NUMBER PRIMARY KEY,
+    Nama_Lengkap VARCHAR2(100) NOT NULL,
+    Posisi VARCHAR2(50),
+    Tanggal_Bergabung DATE DEFAULT SYSDATE
+);
+
+-- Tabel Transaksional
+CREATE TABLE Peminjaman (
+    ID_Peminjaman NUMBER GENERATED BY DEFAULT ON NULL AS IDENTITY PRIMARY KEY,
+    ID_Eksemplar NUMBER REFERENCES Eksemplar_Buku(ID_Eksemplar),
+    ID_Anggota NUMBER REFERENCES Anggota(ID_Anggota),
+    Tanggal_Pinjam DATE DEFAULT SYSDATE,
+    Tanggal_Jatuh_Tempo DATE,
+    Tanggal_Kembali DATE,
+    Status_Peminjaman VARCHAR2(20)
+);
+
+CREATE TABLE Denda (
+    ID_Denda NUMBER GENERATED BY DEFAULT ON NULL AS IDENTITY PRIMARY KEY,
+    ID_Peminjaman NUMBER REFERENCES Peminjaman(ID_Peminjaman),
+    Jumlah_Denda NUMBER(10, 2),
+    Status_Pembayaran VARCHAR2(20) DEFAULT 'Belum Lunas',
+    Tanggal_Pembayaran DATE
+);
+
+CREATE TABLE Ulasan_Buku (
+    ID_Ulasan NUMBER GENERATED BY DEFAULT ON NULL AS IDENTITY PRIMARY KEY,
+    ID_Buku NUMBER REFERENCES Buku(ID_Buku),
+    ID_Anggota NUMBER REFERENCES Anggota(ID_Anggota),
+    Rating NUMBER(1) CHECK (Rating BETWEEN 1 AND 5),
+    Komentar VARCHAR2(1000),
+    Tanggal_Ulasan DATE DEFAULT SYSDATE
+);
+
+-- Tabel Pendukung
+CREATE TABLE Log_Aktivitas (
+    ID_Log NUMBER GENERATED BY DEFAULT ON NULL AS IDENTITY PRIMARY KEY,
+    Deskripsi_Aktivitas VARCHAR2(500),
+    Pelaku_Aksi VARCHAR2(100),
+    Waktu_Aksi TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);</code></pre></div>
+                </div>
+                <div id="dml-content" class="code-content space-y-8">
+                    <div><h3 class="text-xl font-semibold mb-2">2. Data Awal (DML)</h3><p class="text-sm text-slate-500 mb-4">Perintah `INSERT` untuk mengisi data awal ke dalam tabel referensi dan tabel anggota.</p><pre><code>-- Mengisi tabel referensi
+INSERT ALL
+    INTO Penerbit (ID_Penerbit, Nama_Penerbit, Kota) VALUES (101, 'Informatika', 'Bandung')
+    INTO Penerbit (ID_Penerbit, Nama_Penerbit, Kota) VALUES (102, 'Gramedia Pustaka Utama', 'Jakarta')
+    INTO Penerbit (ID_Penerbit, Nama_Penerbit, Kota) VALUES (103, 'Elex Media Komputindo', 'Jakarta')
+SELECT * FROM DUAL;
+
+INSERT ALL
+    INTO Kategori_Buku (ID_Kategori, Nama_Kategori) VALUES (201, 'Pemrograman')
+    INTO Kategori_Buku (ID_Kategori, Nama_Kategori) VALUES (202, 'Jaringan Komputer')
+    INTO Kategori_Buku (ID_Kategori, Nama_Kategori) VALUES (203, 'Sistem Basis Data')
+SELECT * FROM DUAL;
+
+-- Menambahkan data anggota & pustakawan
+INSERT ALL
+    INTO Anggota (ID_Anggota, Nama_Lengkap, Alamat, Email, Gender) VALUES (312310001, 'Aaron Sanyu Lunanta', 'Jl. Tidar No. 1', 'aaron.sanyu@example.com', 'L')
+    INTO Anggota (ID_Anggota, Nama_Lengkap, Alamat, Email, Gender) VALUES (312310002, 'Adam Chesta', 'Jl. Ijen No. 2', 'adam.chesta@example.com', 'L')
+    INTO Anggota (ID_Anggota, Nama_Lengkap, Alamat, Email, Gender) VALUES (312310008, 'Benedictus Marcello Nathanael', 'Jl. Kawi No. 3', 'benedictus.marcello@example.com', 'L')
+SELECT * FROM DUAL;
+
+INSERT ALL
+    INTO Pustakawan (ID_Pustakawan, Nama_Lengkap, Posisi) VALUES (1001, 'Dr. Arifin', 'Kepala Perpustakaan')
+    INTO Pustakawan (ID_Pustakawan, Nama_Lengkap, Posisi) VALUES (1002, 'Bunga Lestari', 'Pustakawan Sirkulasi')
+SELECT * FROM DUAL;
+
+COMMIT;</code></pre></div>
+                </div>
+                <div id="plsql-content" class="code-content space-y-8">
+                    <div><h3 class="text-xl font-semibold mb-2">3. Logika Bisnis & Pemanggilan (PL/SQL)</h3><p class="text-sm text-slate-500 mb-4">Pembuatan semua `FUNCTION`, `PROCEDURE`, `PACKAGE`, `TRIGGER`, dan contoh blok pemanggilannya.</p><pre><code>/* ================= PL/SQL CREATION ================= */
+
+-- FUNCTION: Cek Ketersediaan Eksemplar
+CREATE OR REPLACE FUNCTION Cek_Ketersediaan_Eksemplar (
+    p_Kode_Eksemplar IN Eksemplar_Buku.Kode_Eksemplar%TYPE
+) RETURN BOOLEAN
+AS
+    v_Status Eksemplar_Buku.Status_Ketersediaan%TYPE;
+BEGIN
+    SELECT Status_Ketersediaan INTO v_Status
+    FROM Eksemplar_Buku
+    WHERE Kode_Eksemplar = p_Kode_Eksemplar;
+    
+    RETURN (v_Status = 'Tersedia');
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        RETURN FALSE;
+END;
+/
+
+-- PROCEDURE: Registrasi Buku Baru
+CREATE OR REPLACE PROCEDURE Registrasi_Buku_Baru (
+    p_Judul         IN Buku.Judul%TYPE,
+    p_ID_Penerbit   IN Buku.ID_Penerbit%TYPE,
+    p_Tahun_Terbit  IN Buku.Tahun_Terbit%TYPE,
+    p_ISBN          IN Buku.ISBN%TYPE,
+    p_Jumlah_Copy   IN NUMBER
+) AS
+    v_ID_Buku Buku.ID_Buku%TYPE;
+BEGIN
+    INSERT INTO Buku (Judul, ID_Penerbit, Tahun_Terbit, ISBN)
+    VALUES (p_Judul, p_ID_Penerbit, p_Tahun_Terbit, p_ISBN)
+    RETURNING ID_Buku INTO v_ID_Buku;
+
+    FOR i IN 1..p_Jumlah_Copy LOOP
+        INSERT INTO Eksemplar_Buku (ID_Buku, Kode_Eksemplar, Status_Ketersediaan)
+        VALUES (v_ID_Buku, 'EKM' || LPAD(Eksemplar_Buku_SEQ.NEXTVAL, 7, '0'), 'Tersedia');
+    END LOOP;
+    
+    COMMIT;
+END;
+/
+
+-- PACKAGE: Modul Sirkulasi
+CREATE OR REPLACE PACKAGE Modul_Sirkulasi AS
+    PROCEDURE Proses_Peminjaman(p_ID_Anggota IN Anggota.ID_Anggota%TYPE, p_Kode_Eksemplar IN Eksemplar_Buku.Kode_Eksemplar%TYPE);
+    PROCEDURE Proses_Pengembalian(p_Kode_Eksemplar IN Eksemplar_Buku.Kode_Eksemplar%TYPE);
+END Modul_Sirkulasi;
+/
+
+CREATE OR REPLACE PACKAGE BODY Modul_Sirkulasi AS
+    PROCEDURE Proses_Peminjaman(p_ID_Anggota IN Anggota.ID_Anggota%TYPE, p_Kode_Eksemplar IN Eksemplar_Buku.Kode_Eksemplar%TYPE) AS
+        v_id_eksemplar Eksemplar_Buku.ID_Eksemplar%TYPE;
+    BEGIN
+        IF NOT Cek_Ketersediaan_Eksemplar(p_Kode_Eksemplar) THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Eksemplar ' || p_Kode_Eksemplar || ' sedang tidak tersedia.');
+        END IF;
+        
+        SELECT ID_Eksemplar INTO v_id_eksemplar FROM Eksemplar_Buku WHERE Kode_Eksemplar = p_Kode_Eksemplar;
+
+        INSERT INTO Peminjaman (ID_Eksemplar, ID_Anggota, Tanggal_Pinjam, Tanggal_Jatuh_Tempo, Status_Peminjaman)
+        VALUES (v_id_eksemplar, p_ID_Anggota, SYSDATE, SYSDATE + 14, 'Dipinjam');
+        
+        UPDATE Eksemplar_Buku SET Status_Ketersediaan = 'Dipinjam' WHERE Kode_Eksemplar = p_Kode_Eksemplar;
+        COMMIT;
+    END Proses_Peminjaman;
+    
+    PROCEDURE Proses_Pengembalian(p_Kode_Eksemplar IN Eksemplar_Buku.Kode_Eksemplar%TYPE) AS
+        v_id_eksemplar Eksemplar_Buku.ID_Eksemplar%TYPE;
+    BEGIN
+        SELECT ID_Eksemplar INTO v_id_eksemplar FROM Eksemplar_Buku WHERE Kode_Eksemplar = p_Kode_Eksemplar;
+
+        UPDATE Peminjaman SET Status_Peminjaman = 'Kembali', Tanggal_Kembali = SYSDATE
+        WHERE ID_Eksemplar = v_id_eksemplar AND Status_Peminjaman = 'Dipinjam';
+
+        UPDATE Eksemplar_Buku SET Status_Ketersediaan = 'Tersedia' WHERE Kode_Eksemplar = p_Kode_Eksemplar;
+        COMMIT;
+    END Proses_Pengembalian;
+END Modul_Sirkulasi;
+/
+
+-- PERSISTENT STATE PACKAGE: Sesi Pengguna
+CREATE OR REPLACE PACKAGE Sesi_Pengguna AS
+    v_ID_Pengguna   VARCHAR2(20);
+    v_Nama_Pengguna VARCHAR2(100);
+    
+    PROCEDURE Login(p_ID_Pengguna VARCHAR2, p_Nama_Pengguna VARCHAR2);
+    FUNCTION Get_ID_Pengguna RETURN VARCHAR2;
+    FUNCTION Get_Nama_Pengguna RETURN VARCHAR2;
+END Sesi_Pengguna;
+/
+
+CREATE OR REPLACE PACKAGE BODY Sesi_Pengguna AS
+    PROCEDURE Login(p_ID_Pengguna VARCHAR2, p_Nama_Pengguna VARCHAR2) IS
+    BEGIN
+        v_ID_Pengguna := p_ID_Pengguna;
+        v_Nama_Pengguna := p_Nama_Pengguna;
+    END Login;
+    
+    FUNCTION Get_ID_Pengguna RETURN VARCHAR2 IS BEGIN RETURN v_ID_Pengguna; END;
+    FUNCTION Get_Nama_Pengguna RETURN VARCHAR2 IS BEGIN RETURN v_Nama_Pengguna; END;
+END Sesi_Pengguna;
+/
+
+-- DYNAMIC SQL: Prosedur Pencarian Fleksibel
+CREATE OR REPLACE PROCEDURE Pencarian_Fleksibel (
+    p_Nama_Tabel   IN VARCHAR2,
+    p_Nama_Kolom   IN VARCHAR2,
+    p_Kata_Kunci   IN VARCHAR2
+)
+AS
+    v_SQL_Query VARCHAR2(2000);
+    TYPE Tipe_Kursor IS REF CURSOR;
+    v_Kursor Tipe_Kursor;
+    v_Hasil VARCHAR2(255);
+BEGIN
+    v_SQL_Query := 'SELECT ' || DBMS_ASSERT.SIMPLE_SQL_NAME(p_Nama_Kolom) || 
+                   ' FROM ' || DBMS_ASSERT.SIMPLE_SQL_NAME(p_Nama_Tabel) || 
+                   ' WHERE LOWER(' || DBMS_ASSERT.SIMPLE_SQL_NAME(p_Nama_Kolom) || ') LIKE :keyword';
+    
+    OPEN v_Kursor FOR v_SQL_Query USING '%' || LOWER(p_Kata_Kunci) || '%';
+    -- Loop and fetch logic here...
+    CLOSE v_Kursor;
+END;
+/
+
+-- TRIGGER: Audit Sirkulasi
+CREATE OR REPLACE TRIGGER Audit_Sirkulasi
+AFTER INSERT OR UPDATE ON Peminjaman
+FOR EACH ROW
+DECLARE
+    v_Aksi VARCHAR2(500);
+    v_Kode_Eksemplar Eksemplar_Buku.Kode_Eksemplar%TYPE;
+BEGIN
+    SELECT Kode_Eksemplar INTO v_Kode_Eksemplar FROM Eksemplar_Buku WHERE ID_Eksemplar = :NEW.ID_Eksemplar;
+
+    IF INSERTING THEN
+        v_Aksi := 'Peminjaman eksemplar ' || v_Kode_Eksemplar || ' oleh anggota ' || :NEW.ID_Anggota;
+    ELSIF UPDATING AND :NEW.Status_Peminjaman = 'Kembali' AND :OLD.Status_Peminjaman = 'Dipinjam' THEN
+        v_Aksi := 'Pengembalian eksemplar ' || v_Kode_Eksemplar || ' oleh anggota ' || :NEW.ID_Anggota;
+    END IF;
+
+    IF v_Aksi IS NOT NULL THEN
+        INSERT INTO Log_Aktivitas (Deskripsi_Aktivitas, Pelaku_Aksi, Waktu_Aksi)
+        VALUES (v_Aksi, NVL(Sesi_Pengguna.Get_Nama_Pengguna(), 'Sistem'), SYSTIMESTAMP);
+    END IF;
+END;
+/
+
+/* ================= PL/SQL PEMANGGILAN ================= */
+SET SERVEROUTPUT ON;
+
+-- Pemanggilan Persistent State Package (Login)
+BEGIN
+    Sesi_Pengguna.Login('312310002', 'Adam Chesta');
+    DBMS_OUTPUT.PUT_LINE('Login berhasil untuk ' || Sesi_Pengguna.Get_Nama_Pengguna());
+END;
+/
+
+-- Pemanggilan Procedure
+BEGIN
+    Registrasi_Buku_Baru('Dasar-Dasar Jaringan Komputer', 101, 2023, '978-602-1514-99-1', 3);
+END;
+/
+
+-- Pemanggilan Function
+DECLARE
+    v_Tersedia BOOLEAN;
+BEGIN
+    v_Tersedia := Cek_Ketersediaan_Eksemplar('EKM0000001');
+    IF v_Tersedia THEN DBMS_OUTPUT.PUT_LINE('EKM0000001 Tersedia.'); END IF;
+END;
+/
+
+-- Pemanggilan Package & Pengujian Trigger
+BEGIN
+    Modul_Sirkulasi.Proses_Peminjaman(312310001, 'EKM0000001');
+    Modul_Sirkulasi.Proses_Pengembalian('EKM0000001');
+END;
+/
+
+-- Pemanggilan Dynamic SQL
+BEGIN
+    Pencarian_Fleksibel('Anggota', 'Nama_Lengkap', 'aaron');
+END;
+/
+</code></pre></div></div>
+            </div>
+        </main>
+        <footer class="w-full py-8 mt-20" style="background-color: #D2B48C;">
+            <div class="container mx-auto text-center">
+                <h4 class="font-bold text-slate-800 mb-2">Disusun oleh Kelompok:</h4>
+                <p class="text-slate-700">Aaron Sanyu Lunanta (312310001) | Adam Chesta (312310002) | Benedictus Marcello Nathanael (312310008)</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Tombol Navigasi Antar Ruang (FAB) -->
+    <div class="fixed bottom-6 right-6 z-50 group">
+        <div id="menu-fab" class="flex flex-col items-center mb-4 space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+            <button onclick="switchSpace('frontpage')" class="bg-white text-slate-700 font-semibold w-48 text-left px-4 py-2 rounded-lg shadow-lg hover:bg-slate-100">Halaman Depan</button>
+            <button onclick="switchSpace('laporan')" class="bg-white text-slate-700 font-semibold w-48 text-left px-4 py-2 rounded-lg shadow-lg hover:bg-slate-100">Laporan Proyek</button>
+            <button onclick="switchSpace('data')" class="bg-white text-slate-700 font-semibold w-48 text-left px-4 py-2 rounded-lg shadow-lg hover:bg-slate-100">Data Interaktif</button>
+            <button onclick="switchSpace('kode')" class="bg-white text-slate-700 font-semibold w-48 text-left px-4 py-2 rounded-lg shadow-lg hover:bg-slate-100">Pusat Kode SQL</button>
+        </div>
+        <button id="main-fab" class="bg-yellow-700 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center focus:outline-none focus:ring-4 focus:ring-yellow-300 transition-transform transform group-hover:rotate-45">
+            <svg id="fab-icon-menu" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
+    </div>
+    
+    <!-- Modal Detail Buku -->
+    <div id="bookDetailModal" class="modal-overlay">
+        <div class="modal-content relative">
+            <button id="closeModalButton" class="absolute top-4 right-4 text-2xl text-slate-500 hover:text-red-500 font-bold">&times;</button>
+            <div id="modalBody" class="space-y-4">
+                <!-- Konten detail buku akan diisi oleh JavaScript -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- jQuery & DataTables JS -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA GENERATION ---
+            const penerbitData = [
+                [101, 'Informatika', 'Bandung'], [102, 'Gramedia Pustaka Utama', 'Jakarta'], [103, 'Elex Media Komputindo', 'Jakarta'], 
+                [104, 'Pustaka Pelajar', 'Yogyakarta'], [105, 'Salemba Infotek', 'Jakarta'], [106, 'Prentice Hall', 'New Jersey'], 
+                [107, 'O\'Reilly Media', 'California'], [108, 'Bentang Pustaka', 'Yogyakarta'], [109, 'Mizan Pustaka', 'Bandung'],
+                [110, 'Kepustakaan Populer Gramedia', 'Jakarta'], [111, 'Pearson', 'London'], [112, 'Wiley', 'Hoboken']
+            ];
+            const kategoriData = [
+                [201, 'Pemrograman', 'Buku teknis tentang bahasa pemrograman.'], [202, 'Jaringan Komputer', 'Topik seputar infrastruktur dan protokol jaringan.'], 
+                [203, 'Sistem Basis Data', 'Manajemen dan desain database.'], [204, 'Kecerdasan Buatan', 'Topik terkait AI dan Machine Learning.'],
+                [205, 'Fiksi', 'Karya sastra imajinatif.'], [206, 'Sejarah', 'Studi tentang masa lalu.'],
+                [207, 'Sains Populer', 'Ilmu pengetahuan untuk masyarakat umum.'], [208, 'Pengembangan Diri', 'Buku untuk meningkatkan potensi diri.']
+            ];
+            const logData = [
+                [301, 'Peminjaman eksemplar EKM0000005 oleh anggota 312310001', 'Aaron Sanyu Lunanta', '2024-05-10 10:05:12'], 
+                [302, 'Pengembalian eksemplar EKM0000005 oleh anggota 312310001', 'Aaron Sanyu Lunanta', '2024-05-24 11:23:01'], 
+                [303, 'Registrasi buku baru "Teori Graf" (3 eksemplar)', 'Adam Chesta', '2024-05-28 14:00:55'],
+                [304, 'Update data anggota 312310008', 'Sistem', '2024-06-01 09:00:00'],
+                [305, 'Peminjaman eksemplar EKM0000112 oleh anggota 312310002', 'Benedictus Marcello', '2024-06-02 16:30:15']
+            ];
+            const authors = [
+                'Fajar Masya', 'Robert C. Martin', 'Behrouz A. Forouzan', 'Andrew S. Tanenbaum', 'Yudho Giri Sucahyo', 'James M. Rippe', 
+                'Linda Coles', 'Abdul Rohman', 'Jane Austen', 'Haruki Murakami', 'J.K. Rowling', 'George Orwell', 'Pramoedya Ananta Toer',
+                'Andrea Hirata', 'Dee Lestari', 'Eka Kurniawan', 'J.R.R. Tolkien', 'Agatha Christie', 'Yuval Noah Harari', 'Stephen King', 'James Clear'
+            ];
+            const titles = [
+                'Basis Data Lanjutan', 'Clean Architecture', 'Pengantar Jaringan Komputer', 'Sistem Operasi Modern', 'Digital (r)evolution', 
+                'Diabetes & Keeping Fit', 'Marketing with Social Media', 'Kimia Analitik', 'Machine Learning with Python', 'Kecerdasan Buatan Terapan', 
+                'Manajemen Proyek TI', 'Dasar Keamanan Siber', 'Pride and Prejudice', 'Norwegian Wood', 'Harry Potter and the Sorcerer\'s Stone', '1984',
+                'Laskar Pelangi', 'Bumi Manusia', 'Supernova: Ksatria, Puteri, dan Bintang Jatuh', 'Cantik Itu Luka', 'The Lord of the Rings', 
+                'Sapiens: A Brief History of Humankind', 'Atomic Habits', 'The Shining', 'Murder on the Orient Express'
+            ];
+            const firstNames = [
+                'Ahmad', 'Budi', 'Citra', 'Dewi', 'Eko', 'Fitriana', 'Guntur', 'Hasan', 'Indah', 'Joko', 'Kartika', 'Lestari', 'Aaron', 'Adam', 'Marcello',
+                'Rizky', 'Putri', 'Muhammad', 'Siti', 'Ani', 'Bayu', 'Rina', 'Dian', 'Agus', 'Wati', 'Rendi'
+            ];
+            const lastNames = [
+                'Santoso', 'Prasetyo', 'Wibowo', 'Wijaya', 'Kusuma', 'Lestari', 'Nugroho', 'Rahardjo', 'Sanyu', 'Chesta', 'Nathanael',
+                'Hidayat', 'Saputra', 'Setiawan', 'Dewi', 'Maulana'
+            ];
+            const cities = [
+                'Malang', 'Surabaya', 'Jakarta', 'Bandung', 'Yogyakarta', 'Medan', 'Makassar', 'Semarang', 'Palembang', 'Denpasar', 'Balikpapan'
+            ];
+            const emailDomains = ['example.com', 'mail.net', 'web-mail.org', 'inbox.com'];
+            const streetTypes = ['Jl.', 'Gg.', 'Perum.', 'Komp.'];
+            const streetNames = ['Merpati', 'Elang', 'Cendrawasih', 'Soekarno Hatta', 'Diponegoro', 'Kawi', 'Ijen', 'Gajah Mada', 'Sudirman', 'Pahlawan'];
+            
+            // [DITAMBAHKAN] Data untuk tabel baru
+            const pustakawanData = [
+                [1001, 'Dr. Arifin Setiawan', 'Kepala Perpustakaan', '2015-03-12'],
+                [1002, 'Bunga Lestari', 'Pustakawan Sirkulasi', '2018-07-21'],
+                [1003, 'Rangga Saputra', 'Pustakawan Digital', '2020-01-15'],
+                [1004, 'Siti Aminah', 'Arsiparis', '2019-11-05']
+            ];
+            const dendaData = [
+                [501, 1, 5000, 'Lunas', '2024-05-25'],
+                [502, 3, 2000, 'Belum Lunas', null],
+                [503, 8, 15000, 'Belum Lunas', null]
+            ];
+            const ulasanData = [
+                [701, 7901, 312310001, 5, 'Buku yang sangat mencerahkan tentang arsitektur perangkat lunak!', '2024-05-15'],
+                [702, 7925, 312310002, 4, 'Ceritanya bagus, meskipun endingnya sedikit terburu-buru.', '2024-06-01'],
+                [703, 7910, 312310008, 5, 'Wajib dibaca oleh semua developer.', '2024-04-20']
+            ];
+
+            let bukuData = [], eksemplarData = [], anggotaData = [], peminjamanData = [];
+            let eksemplarIdCounter = 1, peminjamanIdCounter = 1;
+
+            for (let i = 1; i <= 240; i++) { 
+                const idBuku = 7900 + i; 
+                const idPenerbit = penerbitData[Math.floor(Math.random() * penerbitData.length)][0]; 
+                bukuData.push([idBuku, titles[Math.floor(Math.random() * titles.length)], authors[Math.floor(Math.random() * authors.length)], idPenerbit, 2010 + Math.floor(Math.random() * 15), `978-602-${Math.floor(1000+Math.random()*9000)}-${i}`]); 
+                const numItems = 1 + Math.floor(Math.random() * 4); 
+                for(let j=0; j<numItems; j++){ 
+                    const isLent = Math.random() > 0.6; 
+                    eksemplarData.push([eksemplarIdCounter, `EKM${String(eksemplarIdCounter).padStart(7,'0')}`, idBuku, isLent ? 'Dipinjam' : 'Tersedia', `2023-${String(Math.floor(1+Math.random()*12)).padStart(2,'0')}-${String(Math.floor(1+Math.random()*28)).padStart(2,'0')}`]); 
+                    if(isLent){ 
+                        const idAnggota = 312310000 + Math.floor(Math.random() * 50); 
+                        const loanDate = new Date(2024, Math.floor(Math.random()*5), Math.floor(1+Math.random()*28)); 
+                        const dueDate = new Date(loanDate); dueDate.setDate(loanDate.getDate() + 14); 
+                        peminjamanData.push([peminjamanIdCounter, eksemplarIdCounter, idAnggota, loanDate.toISOString().split('T')[0], dueDate.toISOString().split('T')[0], 'Dipinjam']); 
+                        peminjamanIdCounter++; 
+                    } 
+                    eksemplarIdCounter++; 
+                } 
+            }
+            
+            const randomIdBase = Math.floor(20000000 + Math.random() * 70000000);
+            for (let i = 1; i <= 50; i++) { 
+                const idAnggota = randomIdBase + i;
+                const firstName = firstNames[Math.floor(Math.random() * firstNames.length)]; 
+                const lastName = lastNames[Math.floor(Math.random() * lastNames.length)]; 
+                const address = `${streetTypes[Math.floor(Math.random()*streetTypes.length)]} ${streetNames[Math.floor(Math.random()*streetNames.length)]} No. ${i}, ${cities[Math.floor(Math.random()*cities.length)]}`; 
+                const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@${emailDomains[Math.floor(Math.random()*emailDomains.length)]}`; 
+                anggotaData.push([idAnggota, `${firstName} ${lastName}`, address, email, Math.random() > 0.5 ? 'P' : 'L', `2022-${String(Math.floor(1+Math.random()*12)).padStart(2,'0')}-${String(Math.floor(1+Math.random()*28)).padStart(2,'0')}`]); 
+            }
+
+            // --- DATATABLES INITIALIZATION ---
+            let tables = {};
+            function initDataTables() {
+                if (!tables['buku']) tables['buku'] = $('#buku-table').DataTable({ data: bukuData, columns: [{ title: "ID" }, { title: "Judul" }, { title: "Penulis" }, { title: "ID Penerbit" }, { title: "Tahun" }, { title: "ISBN" }], language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' } });
+                if (!tables['eksemplar']) tables['eksemplar'] = $('#eksemplar-table').DataTable({ data: eksemplarData, columns: [{title: "ID Eksemplar"}, {title: "Kode"}, {title: "ID Buku"}, {title: "Status"}, {title: "Tgl. Ditambahkan"}], language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' } });
+                if (!tables['anggota']) tables['anggota'] = $('#anggota-table').DataTable({ data: anggotaData, columns: [{title: "ID"}, {title: "Nama"}, {title: "Alamat"}, {title: "Email"}, {title: "Gender"}, {title: "Tgl. Daftar"}], language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' } });
+                if (!tables['peminjaman']) tables['peminjaman'] = $('#peminjaman-table').DataTable({ data: peminjamanData, columns: [{title: "ID Pinjam"}, {title: "ID Eksemplar"}, {title: "ID Anggota"}, {title: "Tgl. Pinjam"}, {title: "Jatuh Tempo"}, {title: "Status"}], language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' } });
+                if (!tables['penerbit']) tables['penerbit'] = $('#penerbit-table').DataTable({ data: penerbitData, columns: [{title: "ID"}, {title: "Nama Penerbit"}, {title: "Kota"}], language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' } });
+                if (!tables['kategori']) tables['kategori'] = $('#kategori-table').DataTable({ data: kategoriData, columns: [{title: "ID"}, {title: "Nama Kategori"}, {title: "Deskripsi"}], language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' } });
+                if (!tables['log']) tables['log'] = $('#log-table').DataTable({ data: logData, columns: [{title: "ID"}, {title: "Deskripsi Aktivitas"}, {title: "Pelaku"}, {title: "Waktu"}], language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' } });
+                // [DITAMBAHKAN] Inisialisasi untuk tabel baru
+                if (!tables['denda']) tables['denda'] = $('#denda-table').DataTable({ data: dendaData, columns: [{title: "ID Denda"}, {title: "ID Pinjam"}, {title: "Jumlah"}, {title: "Status"}, {title: "Tgl. Pembayaran"}], language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' } });
+                if (!tables['ulasan']) tables['ulasan'] = $('#ulasan-table').DataTable({ data: ulasanData, columns: [{title: "ID Ulasan"}, {title: "ID Buku"}, {title: "ID Anggota"}, {title: "Rating"}, {title: "Komentar"}, {title: "Tgl. Ulasan"}], language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' } });
+                if (!tables['pustakawan']) tables['pustakawan'] = $('#pustakawan-table').DataTable({ data: pustakawanData, columns: [{title: "ID"}, {title: "Nama Lengkap"}, {title: "Posisi"}, {title: "Tgl. Bergabung"}], language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' } });
+            }
+            
+            // --- FRONT PAGE LOGIC (SEARCH, PAGINATION, MODAL) ---
+            const koleksiGrid = document.getElementById('koleksiGrid');
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            const noResultsMessage = document.getElementById('noResultsMessage');
+            const paginationControls = document.getElementById('pagination-controls');
+            
+            const prevPageBtn = document.getElementById('prevPage');
+            const nextPageBtn = document.getElementById('nextPage');
+            const pageInfoSpan = document.getElementById('pageInfo');
+            
+            let currentPage = 1;
+            const booksPerPage = 20;
+            let filteredBooks = [...bukuData];
+            let totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+
+            function displayBooks(bookList, page) {
+                if (!koleksiGrid) return;
+                koleksiGrid.innerHTML = '';
+                
+                const start = (page - 1) * booksPerPage;
+                const end = start + booksPerPage;
+                const paginatedBooks = bookList.slice(start, end);
+
+                const booksHTML = paginatedBooks.map(book => {
+                    const [id, title, author, idPenerbit, tahun, isbn] = book;
+                    return `
+                        <div class="koleksi-item bg-white p-4 rounded-lg shadow-md flex flex-col"
+                             data-id="${id}" data-title="${title}" data-author="${author}"
+                             data-penerbit-id="${idPenerbit}" data-tahun="${tahun}" data-isbn="${isbn}">
+                            <img src="https://picsum.photos/seed/${id}/400/600" alt="${title}" class="rounded-md mb-4 w-full h-48 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/400x600/D2B48C/FFFFFF?text=Buku';">
+                            <div class="flex-grow">
+                               <h3 class="font-bold text-slate-800 text-md leading-tight">${title}</h3>
+                            </div>
+                            <p class="text-sm text-slate-500 mt-2">${author}</p>
+                        </div>`;
+                }).join('');
+                koleksiGrid.innerHTML = booksHTML;
+                updatePaginationControls();
+            }
+            
+            function updatePaginationControls() {
+                if (!pageInfoSpan || !prevPageBtn || !nextPageBtn) return;
+                totalPages = Math.ceil(filteredBooks.length / booksPerPage);
+                if (totalPages === 0) { // Handle no results case
+                    pageInfoSpan.textContent = "Halaman 0 dari 0";
+                } else {
+                    pageInfoSpan.textContent = `Halaman ${currentPage} dari ${totalPages}`;
+                }
+                prevPageBtn.disabled = currentPage === 1;
+                nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+            }
+
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                filteredBooks = bukuData.filter(book => {
+                    const title = book[1].toLowerCase();
+                    const author = book[2].toLowerCase();
+                    const isbn = book[5].toLowerCase();
+                    return title.includes(searchTerm) || author.includes(searchTerm) || isbn.includes(searchTerm);
+                });
+                
+                currentPage = 1;
+                displayBooks(filteredBooks, currentPage);
+                
+                const resultsFound = filteredBooks.length > 0;
+                if (noResultsMessage) noResultsMessage.style.display = resultsFound ? 'none' : 'block';
+                if (paginationControls) paginationControls.style.display = resultsFound ? 'flex' : 'none';
+            }
+            
+            displayBooks(filteredBooks, currentPage); // Initial display
+
+            if (prevPageBtn) {
+                prevPageBtn.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        displayBooks(filteredBooks, currentPage);
+                    }
+                });
+            }
+
+            if (nextPageBtn) {
+                nextPageBtn.addEventListener('click', () => {
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        displayBooks(filteredBooks, currentPage);
+                    }
+                });
+            }
+
+            if(searchButton) searchButton.addEventListener('click', performSearch);
+            if(searchInput) {
+                searchInput.addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') performSearch();
+                });
+                // Real-time search on input
+                searchInput.addEventListener('input', performSearch);
+            }
+
+            const modal = document.getElementById('bookDetailModal');
+            const modalBody = document.getElementById('modalBody');
+            const closeModalButton = document.getElementById('closeModalButton');
+
+            function getPublisherNameById(id) {
+                const publisher = penerbitData.find(p => p[0] === parseInt(id));
+                return publisher ? publisher[1] : 'Tidak diketahui';
+            }
+
+            if (koleksiGrid) {
+                koleksiGrid.addEventListener('click', (e) => {
+                    const bookItem = e.target.closest('.koleksi-item');
+                    if (bookItem && modal && modalBody) {
+                        const { title, author, penerbitId, tahun, isbn } = bookItem.dataset;
+                        const publisherName = getPublisherNameById(penerbitId);
+                        
+                        modalBody.innerHTML = `
+                            <h2 class="text-3xl font-bold text-slate-900" style="font-family: 'Lora', serif;">${title}</h2>
+                            <p class="text-lg text-slate-600 font-medium">oleh ${author}</p>
+                            <div class="mt-6 pt-4 border-t">
+                                <p class="text-sm font-semibold text-slate-800">Penerbit: <span class="font-normal">${publisherName}</span></p>
+                                <p class="text-sm font-semibold text-slate-800">Tahun Terbit: <span class="font-normal">${tahun}</span></p>
+                                <p class="text-sm font-semibold text-slate-800">ISBN: <span class="font-normal">${isbn}</span></p>
+                            </div>
+                        `;
+                        modal.classList.add('active');
+                    }
+                });
+            }
+
+            function closeModal() {
+                if (modal) modal.classList.remove('active');
+            }
+            if(closeModalButton) closeModalButton.addEventListener('click', closeModal);
+            if(modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeModal();
+                });
+            }
+
+            // --- NAVIGATION LOGIC ---
+            $('#data-nav').on('click', '.data-tab', function() {
+                const target = $(this).data('target');
+                $('#data-nav .data-tab').removeClass('active');
+                $(this).addClass('active');
+                $('#data-content-area .data-content').removeClass('active');
+                $(`#${target}`).addClass('active');
+                $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            });
+
+            $('#code-nav').on('click', '.code-tab', function() {
+                const target = $(this).data('target');
+                $('#code-nav .code-tab').removeClass('active');
+                $(this).addClass('active');
+                $('#code-content-area .code-content').removeClass('active');
+                $(`#${target}`).addClass('active');
+            });
+
+            $('#laporan-nav').on('click', '.laporan-tab', function(e) {
+                e.preventDefault();
+                const target = $(this).data('target');
+                $('#laporan-nav .laporan-tab').removeClass('active');
+                $(this).addClass('active');
+                $('#laporan-content-area .report-content').removeClass('active');
+                $(`#${target}`).addClass('active');
+            });
+            
+            initDataTables();
+        });
+
+        function switchSpace(spaceId) {
+            document.querySelectorAll('.space').forEach(space => space.classList.remove('active'));
+            document.getElementById(`space-${spaceId}`).classList.add('active');
+            window.scrollTo(0, 0);
+            if (spaceId === 'data') {
+                 $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            }
+        }
+    </script>
+</body>
+</html>
